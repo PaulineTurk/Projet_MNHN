@@ -1,5 +1,6 @@
 import numpy as np
 
+
 import sys  
 from pathlib import Path  
 file = Path(__file__). resolve()  
@@ -7,6 +8,8 @@ package_root_directory_MNHN = file.parents [2]  # 0: meme niveau, 1: 1 niveau d'
 sys.path.append(str(package_root_directory_MNHN))
 
 from MNHN.utils.fastaReader import readFastaMul
+from MNHN.utils.timer import Timer
+from MNHN.utils.folder import creatFolder, getAccessionNb
 
 def pid(seq_1, seq_2):  
     """
@@ -22,7 +25,7 @@ def pid(seq_1, seq_2):
 
 
 
-def pidCoupleSeq(path_fasta_file, path_file_pId):
+def pid_two_seq(path_fasta_file, path_file_pId):
     liste_seq = readFastaMul(path_fasta_file)
     pid_couple = {}
     for name_1, seq_1 in liste_seq:
@@ -30,3 +33,25 @@ def pidCoupleSeq(path_fasta_file, path_file_pId):
         for name_2, seq_2 in liste_seq:
             pid_couple[name_1][name_2] = pid(seq_1, seq_2)
     np.save(path_file_pId, pid_couple) 
+
+
+
+
+def save_pid(path_folder_fasta, path_folder_pid):
+    """
+    For each fasta file in path_folder_fasta, compute the dictionary of pid 
+    for each couple of sequences and save it in path_folder_pid
+    """
+    t = Timer()
+    t.start()
+
+    creatFolder(path_folder_pid)
+
+    files = Path(path_folder_fasta).iterdir()
+    for file in files:
+        accession_num = getAccessionNb(file)
+        path_file_pid = f"{path_folder_pid}/{accession_num}.pid"
+        pid_two_seq(file, path_file_pid)
+        
+    t.stop("Compute and save the pId files")
+    

@@ -9,32 +9,30 @@ package_root_directory_MNHN = file.parents [2]  # 0: meme niveau, 1: 1 niveau d'
 sys.path.append(str(package_root_directory_MNHN))
 
 from MNHN.utils.fastaReader import readFastaMul
+from MNHN.utils.timer import Timer
 
 
 
 
 
-def dataCount(path_data):
+def data_count(path_data: str):
     """
-    path_folder: path of the folder containing fasta files to describe
+    path_folder: path of the folder of fasta files to describe
     """
-
     # initialisation
     nbre_seed = 0
     nbre_seq = 0
     total_position = 0
     total_residu = 0
-    residu_count = {}   # consider all residus (dico construction along the way)
+    residu_count = {}   # consider all residus (dico constructed along the way)
 
-    # count
+    # counting
     files = Path(path_data).iterdir()
     for file in files:
         nbre_seed += 1
-
         data_Pfam = readFastaMul(file)
         len_seq = len(data_Pfam[0][1])
         total_position += len_seq
-   
         for _, seq in data_Pfam:
             nbre_seq += 1
             total_residu += len_seq 
@@ -66,24 +64,27 @@ def dataCount(path_data):
     return residu_count, total_residu
 
 
-
-
-
-
-
-def barPlot(path_folder_to_describe: str, descriptor: dict, feature: str):
+def bar_plot_data_count(path_folder_to_describe: str,  residu_count: dict, total_residu: float):
     """
     path_folder_to_describe: to name the graph and the figure according to the folder described
     descriptor: dictionary that contains the feature information for each residu
     feature: can be "count" or "percentage"
     """
-    plt.bar(list(descriptor.keys()), descriptor.values(), color='g')
+    residu_percentage = {k: round(100*v / total_residu, 2) for k, v in residu_count.items()}
+
+    # dico sorted by descending order
+    residu_percentage_sorted = dict(sorted(residu_percentage.items(), key=lambda item: item[1], reverse=True))
+
+    plt.bar(list(residu_percentage_sorted.keys()), residu_percentage_sorted.values(), color='g')
     plt.xlabel('Residus')
     plt.ylabel('Percentage')
+
     dir_image = os.path.dirname(path_folder_to_describe)
     name_dir = os.path.basename(path_folder_to_describe)
-    title_graph = f"Residu {feature} in {name_dir}"
+
+    title_graph = f"Residu percentage in {name_dir}"
     title_graph_object = f"{dir_image}/{title_graph}"
+
     plt.title(title_graph)
     plt.savefig(title_graph_object)
     plt.close()
