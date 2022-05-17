@@ -4,11 +4,10 @@ file = Path(__file__). resolve()
 package_root_directory_MNHN = file.parents [2]  # 0: meme niveau, 1: 1 niveau d'écart etc.
 sys.path.append(str(package_root_directory_MNHN))
 
-from MNHN.utils.fastaReader import readFastaMul
+import MNHN.utils.fastaReader as fastaReader
 from MNHN.treatment.pid import pid
-from MNHN.utils.fastaReader import readFastaMul
 from MNHN.utils.timer import Timer
-from MNHN.utils.folder import creatFolder, getAccessionNb
+import MNHN.utils.folder as folder
 
 
 def len_seq_corrected(seq, list_residu):
@@ -90,7 +89,7 @@ def non_redundancy_correction(path_file_fasta, path_file_seq_non_redundant, list
     """
     Rewrite the fasta file by correcting the issue of redundancy according to pid_sup.
     """
-    seed = readFastaMul(path_file_fasta)
+    seed = fastaReader.read_multi_fasta(path_file_fasta)
     cluster = clustering_non_redundant(seed, path_file_seq_non_redundant, list_residu, pid_sup)
     seq_non_redundant = cluster_representative(cluster)
 
@@ -121,11 +120,11 @@ def multi_non_redundancy_correction(path_folder_fasta, path_folder_fasta_non_red
     """
     t = Timer()
     t.start()
-    creatFolder(path_folder_fasta_non_redondant)
+    folder.creat_folder(path_folder_fasta_non_redondant)
     
     files = Path(path_folder_fasta).iterdir()
     for file in files:
-        accession_num = getAccessionNb(file)
+        accession_num = folder.get_accession_number(file)
         path_fasta_non_redondant = f"{path_folder_fasta_non_redondant}/{accession_num}.fasta.nonRedundant"
         non_redundancy_correction(file, path_fasta_non_redondant, list_residu, pid_sup)
     t.stop("Compute and save non-redundant files")

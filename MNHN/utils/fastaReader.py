@@ -1,4 +1,4 @@
-def readFastaMul(nomFi):
+def read_multi_fasta(nomFi):
     seq=""
     nom=""
     lesSeq=[]

@@ -2,7 +2,7 @@ from Bio import AlignIO
 from pathlib import Path
 
 from MNHN.utils.timer import Timer
-from MNHN.utils.folder import creatFolder, getAccessionNb
+import MNHN.utils.folder as folder
 
 
 def stockholm_to_fasta(path_stockholm, path_fasta) :
@@ -25,7 +25,7 @@ def stockholm_separator(path_file, path_folder_save):
     t.start()
 
     input_handle = open(path_file)
-    creatFolder(path_folder_save)
+    folder.creat_folder(path_folder_save)
 
     # collect the accession number of each alignment
     list_accession_num = []
@@ -66,11 +66,11 @@ def multi_stockholm_to_fasta(path_folder_stockholm, path_folder_fasta):
     t = Timer()
     t.start()
 
-    creatFolder(path_folder_fasta)
+    folder.creat_folder(path_folder_fasta)
 
     files_stockholm = Path(path_folder_stockholm).iterdir()
     for file_stockholm in files_stockholm:
-        accession_num = getAccessionNb(file_stockholm)
+        accession_num = folder.get_accession_number(file_stockholm)
         path_file_fasta = f"{path_folder_fasta}/{accession_num}.fasta"
         stockholm_to_fasta(file_stockholm, path_file_fasta)
     t.stop("Conversion of Stockholm files into Fasta files")

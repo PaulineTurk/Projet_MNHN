@@ -9,7 +9,7 @@ package_root_directory_MNHN = file.parents [2]  # 0: meme niveau, 1: 1 niveau d'
 sys.path.append(str(package_root_directory_MNHN))
 
 from MNHN.utils.timer import Timer
-from MNHN.utils.folder import creatFolder, getAccessionNb
+import MNHN.utils.folder as folder
 
 
 def capitalization(path_file, path_file_corrected):
@@ -38,11 +38,11 @@ def multi_capitalization(path_data, path_data_corrected):
     t = Timer()
     t.start()
 
-    creatFolder(path_data_corrected)
+    folder.creat_folder(path_data_corrected)
 
     files = Path(path_data).iterdir()
     for file in files:
-        accession_num = getAccessionNb(file)
+        accession_num = folder.get_accession_number(file)
         path_file_corrected = f"{path_data_corrected}/{accession_num}.fasta.upper"
         capitalization(file, path_file_corrected)
     t.stop("Correction upper files")

@@ -5,7 +5,7 @@ package_root_directory_MNHN = file.parents[1]  # 0: meme niveau, 1: 1 niveau d'Ã
 sys.path.append(str(package_root_directory_MNHN))
 
 
-from MNHN.utils.folder import creatFolder
+import MNHN.utils.folder as folder
 import MNHN.treatment.description as description
 import MNHN.treatment.stockholm as stockholm
 import MNHN.treatment.capitalizer as capitalizer
@@ -50,7 +50,7 @@ redundancy.multi_non_redundancy_correction(path_folder_fasta, path_folder_fasta_
 
 path_folder_data = path_folder_fasta_nonRedondant  # redondant corrected
 result_folder = "/Users/pauline/Desktop/data_Result"
-creatFolder("/Users/pauline/Desktop/data_Result")
+folder.creat_folder("/Users/pauline/Desktop/data_Result")
 path_folder_data_split = f"{result_folder}/Pfam_split" 
 percentage_A = 90
 name_data_A, name_data_B = "Pfam_90", "Pfam_10"

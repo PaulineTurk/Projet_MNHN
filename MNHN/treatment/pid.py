@@ -7,9 +7,9 @@ file = Path(__file__). resolve()
 package_root_directory_MNHN = file.parents [2]  # 0: meme niveau, 1: 1 niveau d'écart etc.
 sys.path.append(str(package_root_directory_MNHN))
 
-from MNHN.utils.fastaReader import readFastaMul
+import MNHN.utils.fastaReader as fastaReader
 from MNHN.utils.timer import Timer
-from MNHN.utils.folder import creatFolder, getAccessionNb
+import MNHN.utils.folder as folder
 
 def pid(seq_1, seq_2):  
     """
@@ -26,7 +26,7 @@ def pid(seq_1, seq_2):
 
 
 def pid_two_seq(path_fasta_file, path_file_pId):
-    liste_seq = readFastaMul(path_fasta_file)
+    liste_seq = fastaReader.read_multi_fasta(path_fasta_file)
     pid_couple = {}
     for name_1, seq_1 in liste_seq:
         pid_couple[name_1] = {}
@@ -45,13 +45,12 @@ def save_pid(path_folder_fasta, path_folder_pid):
     t = Timer()
     t.start()
 
-    creatFolder(path_folder_pid)
+    folder.creat_folder(path_folder_pid)
 
     files = Path(path_folder_fasta).iterdir()
     for file in files:
-        accession_num = getAccessionNb(file)
+        accession_num = folder.get_accession_number(file)
         path_file_pid = f"{path_folder_pid}/{accession_num}.pid"
         pid_two_seq(file, path_file_pid)
         
     t.stop("Compute and save the pId files")
-    

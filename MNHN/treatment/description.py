@@ -8,7 +8,7 @@ file = Path(__file__). resolve()
 package_root_directory_MNHN = file.parents [2]  # 0: meme niveau, 1: 1 niveau d'écart etc.
 sys.path.append(str(package_root_directory_MNHN))
 
-from MNHN.utils.fastaReader import readFastaMul
+import MNHN.utils.fastaReader as fastaReader
 from MNHN.utils.timer import Timer
 
 
@@ -30,7 +30,7 @@ def data_count(path_data: str):
     files = Path(path_data).iterdir()
     for file in files:
         nbre_seed += 1
-        data_Pfam = readFastaMul(file)
+        data_Pfam = fastaReader.read_multi_fasta(file)
         len_seq = len(data_Pfam[0][1])
         total_position += len_seq
         for _, seq in data_Pfam:
