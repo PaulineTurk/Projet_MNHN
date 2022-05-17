@@ -1,0 +1,14 @@
+# générer couples de aa test
+
+1- create a file with at each line:   # to read once
+(pid_seed, name_1, name_2, len_seq) # for each valid couple
+
+
+2- for a context structure [G1, D1, G2, D2]:
+add for each line the list of valid position (according to the context)
+
+3- creat a dictionary:
+random selection of a line in the file hence of a couple of sequences
+key: (pid_seed, name_1, name_2, len_seq, list_valid_index)
+random selection of a valid position
+value: list_of_random_valid_index_selected
