@@ -12,12 +12,12 @@ sys.path.append(str(package_root_directory_MNHN))
 
 
 from MNHN.utils.timer import Timer
-from MNHN.utils.fastaReader import readFastaMul
-from MNHN.utils.folder import getAccessionNb
+import MNHN.utils.fastaReader as fastaReader
+import MNHN.utils.folder as folder
 
 
 
-def initialisationTriplet(list_residu):
+def triplet_count_for_cube_initialisation(list_residu):
     """
     Initialisation of the count of triplets at 1 for each valid triplet
     to avoid issues when the triplet is not in data_train.
@@ -38,7 +38,7 @@ def initialisationTriplet(list_residu):
 
     
 
-def tripletCount(file_fasta, path_folder_pid, triplet_count, delay_num, kp_SeqChoice, list_residu, pid_inf):    
+def triplet_count_for_cube(file_fasta, path_folder_pid, triplet_count, delay_num, kp_SeqChoice, list_residu, pid_inf):    
     """
     Count the valid triplets of amino acid in a seed.
 
@@ -52,9 +52,9 @@ def tripletCount(file_fasta, path_folder_pid, triplet_count, delay_num, kp_SeqCh
     # p: predict
     # c: context
     # kp_SeqChoice: choice the reference sequence to look at its neighbors
-    accession_num = getAccessionNb(file_fasta)
+    accession_num = folder.get_accession_number(file_fasta)
     pid_couple = np.load(f"{path_folder_pid}/{accession_num}.pId.npy", allow_pickle='TRUE').item()    
-    seed = readFastaMul(file_fasta)
+    seed = fastaReader.read_multi_fasta(file_fasta)
     len_seq = len(seed[0][1])
 
     if seed:
@@ -82,20 +82,11 @@ def tripletCount(file_fasta, path_folder_pid, triplet_count, delay_num, kp_SeqCh
                                     triplet_count[aa_k][aa_p][aa_c] += 1
     else:
         print(accession_num)
+
     return triplet_count
 
 
-
-
-
-
-
-
-
-
-
-
-def conditionalProba(list_residu, triplet_count):
+def triplet_conditional_proba(list_residu, triplet_count):
     # pseudo_count idea removed because we have enough data
     intra_couple_count = {}
     for aa_k in list_residu:
@@ -120,7 +111,7 @@ def conditionalProba(list_residu, triplet_count):
 
 
 
-def sumLine(cond_proba, list_residu, aa_k, aa_c):
+def sum_line(cond_proba, list_residu, aa_k, aa_c):
     """
     The sum of the conditional probabilities on each line (for aa_k and aa_c fixed) 
     must be equal to 1 to respect the total probability formula.
@@ -132,7 +123,7 @@ def sumLine(cond_proba, list_residu, aa_k, aa_c):
 
 
 
-def sumPlate(cond_proba):
+def sum_plate(cond_proba):
     """
     cond_proba: cube of the conditional probabilities of each valid triplet.
 
@@ -147,46 +138,44 @@ def sumPlate(cond_proba):
         print(f"{aa_1}, {sum_plateau}")
 
 
-
-
-def blosumVisualisation(blosum): # to factorise
-    """
-    Visualisation of the matrix
-    """
-    df_blosum = np.transpose(pd.DataFrame.from_dict(blosum))  
-    print(df_blosum)
-    return df_blosum
-
-
-
-
 # path_NeighborRes  # Create target Directory if don't exist dans le main
 # simpleContextualBlosum change in cube generator !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! pas encore changé !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-def multiTripletCount(path_folder_fasta, path_folder_pid, delay_num, kp_SeqChoice, list_residu, pid_inf = 62):
+def multi_triplet_count_for_cube(path_folder_fasta, path_folder_pid, delay_num, kp_SeqChoice, list_residu, pid_inf = 62):
     t = Timer()
     t.start()
 
-    triplet_count = initialisationTriplet(list_residu)
+    triplet_count = triplet_count_for_cube_initialisation(list_residu)
 
     files = Path(path_folder_fasta).iterdir()
     name_folder_fasta = os.path.basename(path_folder_fasta)
 
     for file in files:
-            triplet_count = tripletCount(file, path_folder_pid, triplet_count, delay_num, kp_SeqChoice, list_residu, pid_inf)
+            triplet_count = triplet_count_for_cube(file, path_folder_pid, triplet_count, delay_num, kp_SeqChoice, list_residu, pid_inf)
 
     t.stop("Compute the valid triplets count")
 
     return triplet_count, name_folder_fasta
     
 
-def cubeOneNeighbour(triplet_count, name_folder_fasta, path_NeighborRes, delay_num, kp_SeqChoice, list_residu):
+def cube(triplet_count, name_folder_fasta, path_NeighborRes, delay_num, kp_SeqChoice, list_residu):
     t = Timer()
     t.start()
     print(f"Conditional probability cube: {delay_num},{kp_SeqChoice}")
-    cond_proba = conditionalProba(list_residu, triplet_count)
+    cond_proba = triplet_conditional_proba(list_residu, triplet_count)
     path_proba_cond = f"{path_NeighborRes}/proba_cond_({str(delay_num)},{kp_SeqChoice})_{name_folder_fasta}"
     np.save(path_proba_cond, cond_proba) 
     path_proba_cond = f"{path_proba_cond}.npy"
     t.stop("Compute the conditional probability matrix with 1 neighbour")
+
     return cond_proba, path_proba_cond
+
+
+def dico_visualisation(dico): # to factorise
+    """
+    Visualisation of the matrix
+    """
+    df_dico = np.transpose(pd.DataFrame.from_dict(dico))  
+    print(df_dico)
+
+    return df_dico
