@@ -1,7 +1,7 @@
 import sys  
 from pathlib import Path  
 file = Path(__file__).resolve()  
-package_root_directory_MNHN = file.parents[1]  # 0: meme niveau, 1: 1 niveau d'écart etc.
+package_root_directory_MNHN = file.parents[1]
 sys.path.append(str(package_root_directory_MNHN))
 
 

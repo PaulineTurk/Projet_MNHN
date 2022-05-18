@@ -1,4 +1,3 @@
-
 import pandas as pd
 from math import log2
 import numpy as np
@@ -14,12 +13,12 @@ file = Path(__file__). resolve()
 package_root_directory_MNHN = file.parents [2]  
 sys.path.append(str(package_root_directory_MNHN))  
 from MNHN.utils.timer import Timer
-from MNHN.utils.fastaReader import readFastaMul # import ... marche aussi
-from MNHN.utils.folder import getAccessionNb
+import MNHN.utils.fastaReader as fastaReader
+import MNHN.utils.folder as folder
 
 
 
-def countBlosum(num_accession, path_folder_pid, seed, pid_inf,  
+def count_for_blosum(num_accession, path_folder_pid, seed, pid_inf,  
                 count_AA, nb_AA, count_coupleAA, nb_coupleAA, list_residu):   
     """
     In the seed with id num_accession, count the number of each valid amino acid 
@@ -62,14 +61,9 @@ def countBlosum(num_accession, path_folder_pid, seed, pid_inf,
     return count_AA, nb_AA, count_coupleAA, nb_coupleAA
 
 
-
-
-
-
-
-def multicountBlosum(path_folder_fasta, path_folder_pid, list_residu, pid_inf = 62):
+def multi_count_for_blosum(path_folder_fasta, path_folder_pid, list_residu, pid_inf = 62):
     """
-    Iterate countBlosum on the files included in path_folder_fasta.
+    Iterate count_for_blosum on the files included in path_folder_fasta.
     """
     t = Timer()
     t.start()
@@ -92,10 +86,10 @@ def multicountBlosum(path_folder_fasta, path_folder_pid, list_residu, pid_inf = 
     files = Path(path_folder_fasta).iterdir()
 
     for file in files:
-            accession_num = getAccessionNb(file)
-            seed_train = readFastaMul(file)
-            count_AA, nb_AA, count_coupleAA, nb_coupleAA = countBlosum(accession_num, path_folder_pid, seed_train, pid_inf, 
-                                                                       count_AA, nb_AA, count_coupleAA, nb_coupleAA, list_residu)
+            accession_num = folder.get_accession_number(file)
+            seed_train = fastaReader.read_multi_fasta(file)
+            count_AA, nb_AA, count_coupleAA, nb_coupleAA = count_for_blosum(accession_num, path_folder_pid, seed_train, pid_inf,
+                                                                            count_AA, nb_AA, count_coupleAA, nb_coupleAA, list_residu)
 
     t.stop("Compute the count of amino acid and couple of amino acids")
 
@@ -104,7 +98,7 @@ def multicountBlosum(path_folder_fasta, path_folder_pid, list_residu, pid_inf = 
 
 
 
-def freqBlosum(count_AA, nb_AA, count_coupleAA, nb_coupleAA, path_folder_Result):
+def freq_for_blosum(count_AA, nb_AA, count_coupleAA, nb_coupleAA, path_folder_Result):
     """
     Compute and save the frequences of each valid amino acid 
     and each valid couple of amino acids.
@@ -143,7 +137,7 @@ def freqBlosum(count_AA, nb_AA, count_coupleAA, nb_coupleAA, path_folder_Result)
 
 
 
-def blosumScore(freq_AA, freq_coupleAA, path_folder_Result, scale_factor = 2):
+def blosum_score(freq_AA, freq_coupleAA, path_folder_Result, scale_factor = 2):
     """
     Compute and save the Blosum matrix 
     """
@@ -156,7 +150,8 @@ def blosumScore(freq_AA, freq_coupleAA, path_folder_Result, scale_factor = 2):
         blosum[aa_1] = {}
         for aa_2 in list_residu:
             if freq_coupleAA[aa_1][aa_2] != 0:
-                blosum[aa_1][aa_2] = round(scale_factor * log2(freq_coupleAA[aa_1][aa_2] / (freq_AA[aa_1] * freq_AA[aa_2])))
+                blosum[aa_1][aa_2] = round(scale_factor * log2(freq_coupleAA[aa_1][aa_2]    
+                                                            / (freq_AA[aa_1] * freq_AA[aa_2])))
             else:
                 blosum[aa_1][aa_2] = 0 
     t.stop("Compute the blosum matrix")
@@ -167,7 +162,7 @@ def blosumScore(freq_AA, freq_coupleAA, path_folder_Result, scale_factor = 2):
 
 
 
-def blosumConditionalProba(freq_AA, freq_coupleAA, path_folder_Result):
+def blosum_conditional_proba(freq_AA, freq_coupleAA, path_folder_Result):
     """
     Compute and save the matrix of conditional probabilities
     """
@@ -191,11 +186,11 @@ def blosumConditionalProba(freq_AA, freq_coupleAA, path_folder_Result):
 
 
 
-def heatmapBlosum(matrix, path_folder_Result, title, size_annot = 3):
+def blosum_heatmap(matrix, path_folder_Result, title, size_annot = 3):
     """
     Save the heatmap of the matrix in path_folder_Result
     """
-    heatmap_matrix = pd.DataFrame(matrix).T.fillna(0)
+    heatmap_matrix = pd.DataFrame(matrix).T.fillna(0)  # à transposer?
     heatmap = sb.heatmap(heatmap_matrix, annot = True, annot_kws = {"size": size_annot}, fmt = '.2g')
     plt.yticks(rotation=0) 
     heatmap_figure = heatmap.get_figure()    
@@ -205,7 +200,7 @@ def heatmapBlosum(matrix, path_folder_Result, title, size_annot = 3):
     heatmap_figure.savefig(path_save_fig, dpi=400)
 
 
-def blosumVisualisation(blosum):
+def blosum_visualisation(blosum):
     """
     Visualisation of the matrix
     """
@@ -215,7 +210,7 @@ def blosumVisualisation(blosum):
 
 
 
-def sumLine(blosum):
+def sum_line(blosum):
     """
     To check that the somme of the line is equal to one 
     for the conditional probability matrix
@@ -227,7 +222,7 @@ def sumLine(blosum):
 
 
 
-def diffBlosum(blosum, pid_inf_ref = 62):
+def blosum_difference(blosum, pid_inf_ref = 62):
     """
     Quantify the distance between the blosum computed and a blosum of reference
     """
