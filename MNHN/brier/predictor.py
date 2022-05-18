@@ -3,7 +3,7 @@ import numpy as np
 import copy
 
 
-def predictor01(seed, num_accession, path_folder_pid, brier_score, count, list_residu, pid_inf):
+def predictor_01(seed, num_accession, path_folder_pid, brier_score, count, list_residu, pid_inf):
     """
     Worst predictor that always predicts with a probability of 1 a random uncorrect amino acid.
 
@@ -38,13 +38,11 @@ def predictor01(seed, num_accession, path_folder_pid, brier_score, count, list_r
                                         # probability of predicting any other amino acid  = 0
                                         proba = 0
                                 brier_score += (proba - int(aa_2 == j))**2
+
     return brier_score, count
 
 
-
-
-
-def predictorPerfect(seed, num_accession, path_folder_pid, brier_score, count, list_residu, pid_inf):
+def predictor_perfect(seed, num_accession, path_folder_pid, brier_score, count, list_residu, pid_inf):
     """
     Perfect predictor that always predict with a probability of 1 the correct amino acid.
     """
@@ -64,26 +62,21 @@ def predictorPerfect(seed, num_accession, path_folder_pid, brier_score, count, l
                                     # probability of predicting the wrong amino acid = 0
                                     proba = 0
                                 brier_score += (proba - int(aa_2 == j))**2
+
     return brier_score, count
 
 
-
-
-
-
-def predictorBlosum(path_cond_proba, list_residu):
+def predictor_blosum(path_cond_proba, list_residu):
     """
     Predictor that uses the conditional probability blosum matrix.
     """
     cond_proba = np.load(path_cond_proba ,allow_pickle='TRUE').item()
-    unit_Brier = unitBrier(cond_proba, list_residu)
+    unit_Brier = brier_unit(cond_proba, list_residu)
+
     return unit_Brier
 
 
-
-
-
-def predicteurEquiprobable(list_residu):
+def predicteur_equiprobable(list_residu):
     """
     Predictor that predict each amino acid with the same probability.
     """
@@ -96,14 +89,12 @@ def predicteurEquiprobable(list_residu):
         for aa_2 in list_residu:
             cond_proba[aa_1][aa_2] = equiproba
 
-    unit_Brier = unitBrier(cond_proba, list_residu)
+    unit_Brier = brier_unit(cond_proba, list_residu)
+
     return unit_Brier
 
 
-
-
-
-def predictorStationary(path_freq_aa, list_residu):
+def predictor_stationary(path_freq_aa, list_residu):
     """
     Predictor that predict an amino acid with the frequency of that amino acid. 
     """
@@ -115,11 +106,12 @@ def predictorStationary(path_freq_aa, list_residu):
         for aa_2 in list_residu:
             cond_proba[aa_1][aa_2] = freq_aa[aa_2]
 
-    unit_Brier = unitBrier(cond_proba)
+    unit_Brier = brier_unit(cond_proba)
+
     return unit_Brier
 
 
-def predictorIdentity(list_residu):
+def predictor_identity(list_residu):
     """
     Predictor that predict with a probabilty of 1 that the amino acid will not be substituted.
     """
@@ -132,15 +124,12 @@ def predictorIdentity(list_residu):
             else:
                 cond_proba[aa_1][aa_2] = 0
     
-    unit_brier = unitBrier(cond_proba, list_residu)
+    unit_brier = brier_unit(cond_proba, list_residu)
+
     return unit_brier
 
 
-
-
-
-
-def unitBrier(cond_proba, list_residu):  
+def brier_unit(cond_proba, list_residu):  
     unit_Brier = {}
     for aa_1 in list_residu:
         unit_Brier[aa_1] = {}
@@ -149,13 +138,11 @@ def unitBrier(cond_proba, list_residu):
             for j in list_residu: 
                 unit += (cond_proba[aa_1][j] - int(aa_2 == j))**2 
             unit_Brier[aa_1][aa_2] = unit
+
     return unit_Brier
 
 
-
-
-
-def brierMatrix(unit_Brier, seed, accession_num, path_folder_pid, brier_score, count, list_residu, pid_inf):
+def brier_matrix(unit_Brier, seed, accession_num, path_folder_pid, brier_score, count, list_residu, pid_inf):
     """
     Compute brier_score and count for matrix predictors
     """

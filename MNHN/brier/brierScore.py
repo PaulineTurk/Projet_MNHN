@@ -4,14 +4,14 @@ file = Path(__file__). resolve()
 package_root_directory_MNHN = file.parents [2]  # 0: meme niveau, 1: 1 niveau d'écart etc.
 sys.path.append(str(package_root_directory_MNHN))
 
-from MNHN.utils.folder import getAccessionNb
-from MNHN.utils.fastaReader import readFastaMul
+import MNHN.utils.folder as folder
+import MNHN.utils.fastaReader as fastaReader
 from MNHN.utils.timer import Timer
 
-from MNHN.brier.predictor import predictor01, predictorPerfect, brierMatrix
+import MNHN.brier.predictor as predictor 
 
 
-def multiBrier01(path_folder_fasta, path_folder_pid, list_residu, pid_inf = 62):   
+def brier_score_predictor_01(path_folder_fasta, path_folder_pid, list_residu, pid_inf = 62):   
     """
     Compute Brier Score on files with the predictor 0/1.
     """
@@ -24,9 +24,9 @@ def multiBrier01(path_folder_fasta, path_folder_pid, list_residu, pid_inf = 62):
 
     files = Path(path_folder_fasta).iterdir()
     for file in files:
-        accession_num = getAccessionNb(file)
-        seed = readFastaMul(file)
-        brier_score, count = predictor01(seed, accession_num, path_folder_pid, brier_score, count, list_residu, pid_inf)
+        accession_num = folder.get_accession_number(file)
+        seed = fastaReader.read_multi_fasta(file)
+        brier_score, count = predictor.predictor_01(seed, accession_num, path_folder_pid, brier_score, count, list_residu, pid_inf)
     if count != 0:
         brier_score = brier_score/count
     else:
@@ -38,10 +38,7 @@ def multiBrier01(path_folder_fasta, path_folder_pid, list_residu, pid_inf = 62):
     return brier_score
 
 
-
-
-
-def multiBrierPerfect(path_folder_fasta, path_folder_pid, list_residu, pid_inf = 62):   
+def brier_score_predictor_perfect(path_folder_fasta, path_folder_pid, list_residu, pid_inf = 62):   
     """
     Compute Brier Score on files with the perfect predictor.
     """
@@ -54,9 +51,9 @@ def multiBrierPerfect(path_folder_fasta, path_folder_pid, list_residu, pid_inf =
 
     files = Path(path_folder_fasta).iterdir()
     for file in files:
-        accession_num = getAccessionNb(file)
-        seed = readFastaMul(file)
-        brier_score, count = predictorPerfect(seed, accession_num, path_folder_pid, brier_score, count, list_residu, pid_inf)
+        accession_num = folder.get_accession_number(file)
+        seed = fastaReader.read_multi_fasta(file)
+        brier_score, count = predictor.predictor_perfect(seed, accession_num, path_folder_pid, brier_score, count, list_residu, pid_inf)
     
     if count != 0:
         brier_score = brier_score/count
@@ -65,13 +62,14 @@ def multiBrierPerfect(path_folder_fasta, path_folder_pid, list_residu, pid_inf =
         print("Brier Score not computable because 0 prediction was done")
 
     t.stop("Brier Score with perfect predictor")
+
     return brier_score
 
 
 
 
 
-def multiBrierMatrix(path_folder_fasta, path_folder_pid, unit_Brier, list_residu, pid_inf = 62):  
+def brier_score_matrix(path_folder_fasta, path_folder_pid, unit_Brier, list_residu, pid_inf = 62):  
     """
     Compute Brier Score on files with a predictor from the list: ["Blosum Predictor", "Equiprobable Predictor",  
                                                                   "Stationary Predictor", "Identity Predictor"]
@@ -85,14 +83,15 @@ def multiBrierMatrix(path_folder_fasta, path_folder_pid, unit_Brier, list_residu
 
     files = Path(path_folder_fasta).iterdir()
     for file in files:
-        accession_num = getAccessionNb(file)
-        seed = readFastaMul(file)
-        brier_score, count = brierMatrix(unit_Brier, seed, accession_num, path_folder_pid, brier_score, count, list_residu, pid_inf)
+        accession_num = folder.get_accession_number(file)
+        seed = fastaReader.read_multi_fasta(file)
+        brier_score, count = predictor.brier_matrix(unit_Brier, seed, accession_num, path_folder_pid, brier_score, count, list_residu, pid_inf)
     if count != 0:
         brier_score = brier_score/count
     else:
         brier_score = None
     t.stop("Brier Score")   # intéret de donner un nom à chaque prédicteur 
+    
     return brier_score
 
 
