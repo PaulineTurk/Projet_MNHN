@@ -15,7 +15,7 @@ from MNHN.utils.timer import Timer
 
 
 
-def data_count(path_data: str):
+def data_count(path_data: str, list_residu):
     """
     path_folder: path of the folder of fasta files to describe
     """
@@ -24,7 +24,12 @@ def data_count(path_data: str):
     nbre_seq = 0
     total_position = 0
     total_residu = 0
-    residu_count = {}   # consider all residus (dico constructed along the way)
+    total_character = 0
+    character_count = {}        # consider all residus (dico constructed along the way)
+
+    residu_count = {}  
+    for aa in list_residu:
+        residu_count[aa] = 0 
 
     # counting
     files = Path(path_data).iterdir()
@@ -35,16 +40,22 @@ def data_count(path_data: str):
         total_position += len_seq
         for _, seq in data_Pfam:
             nbre_seq += 1
-            total_residu += len_seq 
+            total_character += len_seq
             for aa in seq:
-                if aa in residu_count:
-                    residu_count[aa] += 1
+                if aa in character_count:
+                    character_count[aa] += 1
                 else:
-                    residu_count[aa] = 1
+                    character_count[aa] = 1
+                
+                if aa in list_residu:
+                    total_residu += 1 
+                    residu_count[aa] += 1
+                    
 
     print("nbre_seed:", '{:_.2f}'.format(nbre_seed))
     print("nbre_seq:", '{:_.2f}'.format(nbre_seq))
     print("nbre_position:", '{:_.2f}'.format(total_position))
+    print("total_character:", '{:_.2f}'.format(total_character))
     print("total_residu:", '{:_.2f}'.format(total_residu))
 
     # mean len sequence
@@ -61,10 +72,10 @@ def data_count(path_data: str):
     else:
         print('no seed')
 
-    return residu_count, total_residu
+    return residu_count, total_residu, character_count, total_character
 
 
-def bar_plot_data_count(path_folder_to_describe: str,  residu_count: dict, total_residu: float):
+def bar_plot_data_count(path_folder_to_describe: str,  residu_count: dict, total_residu: float, entity_name):
     """
     path_folder_to_describe: to name the graph and the figure according to the folder described
     descriptor: dictionary that contains the feature information for each residu
@@ -76,13 +87,13 @@ def bar_plot_data_count(path_folder_to_describe: str,  residu_count: dict, total
     residu_percentage_sorted = dict(sorted(residu_percentage.items(), key=lambda item: item[1], reverse=True))
 
     plt.bar(list(residu_percentage_sorted.keys()), residu_percentage_sorted.values(), color='g')
-    plt.xlabel('Residus')
+    plt.xlabel(entity_name)
     plt.ylabel('Percentage')
 
     dir_image = os.path.dirname(path_folder_to_describe)
     name_dir = os.path.basename(path_folder_to_describe)
 
-    title_graph = f"Residu percentage in {name_dir}"
+    title_graph = f"{entity_name} percentage in {name_dir}"
     title_graph_object = f"{dir_image}/{title_graph}"
 
     plt.title(title_graph)
