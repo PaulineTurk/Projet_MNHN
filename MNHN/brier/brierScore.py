@@ -95,6 +95,48 @@ def brier_score_matrix(path_folder_fasta, path_folder_pid, unit_Brier, list_resi
     return brier_score
 
 
+def brier_score_matrix_v2(path_folder_fasta, path_folder_pid, unit_Brier, list_residu, pid_inf = 62):  
+    """
+    Compute Brier Score on files with a predictor from the list: ["Blosum Predictor", "Equiprobable Predictor",  
+                                                                  "Stationary Predictor", "Identity Predictor"]
+    For each amino acid and the total brier score
+    """
+    t = Timer()
+    t.start()
+
+    # intialisation
+    brier_score = {}
+    count = {}
+    for aa in list_residu:
+        brier_score[aa] = 0
+        count[aa] = 0
+
+    files = Path(path_folder_fasta).iterdir()
+    for file in files:
+        accession_num = folder.get_accession_number(file)
+        seed = fastaReader.read_multi_fasta(file)
+        brier_score, count = predictor.brier_matrix_v2(unit_Brier, seed, accession_num, path_folder_pid, brier_score, count, list_residu, pid_inf)
+    for aa in count:
+        if count[aa] != 0:
+            brier_score[aa] /= count[aa] 
+        else:
+            brier_score[aa]  = 0
+    t.stop("Brier Score")   # intéret de donner un nom à chaque prédicteur 
+
+    total_count = sum(count.values())
+
+    fraction_count = {}
+    for aa in count:
+        fraction_count[aa] = count[aa]/total_count
+
+    total_brier_score = 0
+    for aa in brier_score:
+        total_brier_score += brier_score[aa] * fraction_count[aa]
+    print("Brier Score for each amino-acid:\n", brier_score)
+    print("Count of predictions for each amino-acid:\n", count)
+    print("Total Brier Score:\n", total_brier_score)
+    
+    return brier_score, count, total_brier_score
 
 
 # def overfittingTest(path_data, percentage_A, path_pid, path_BlosumRes, name_data_train, name_data_test, list_residu):

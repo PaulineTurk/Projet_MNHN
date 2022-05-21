@@ -161,3 +161,25 @@ def brier_matrix(unit_Brier, seed, accession_num, path_folder_pid, brier_score, 
                         brier_score += unit_Brier[aa_2][aa_1]
 
     return brier_score, count
+
+
+def brier_matrix_v2(unit_Brier, seed, accession_num, path_folder_pid, brier_score, count, list_residu, pid_inf):
+    """
+    Compute brier_score and count for matrix predictors
+    """
+    pid_couple = np.load(f"{path_folder_pid}/{accession_num}.pId.npy", allow_pickle='TRUE').item()
+    nb_seq = len(seed)
+
+    for i in range(nb_seq):
+        name_1, seq_1 = seed[i]
+        for j in range(i + 1, nb_seq):
+            name_2 ,seq_2 = seed[j] 
+            if pid_couple[name_1][name_2] >= pid_inf:
+                for (aa_1, aa_2) in zip(seq_1, seq_2):
+                    if aa_1 in list_residu and aa_2 in list_residu:
+                        count[aa_1] += 1
+                        count[aa_2] += 1
+                        brier_score[aa_1] += unit_Brier[aa_1][aa_2]
+                        brier_score[aa_2] += unit_Brier[aa_2][aa_1]
+
+    return brier_score, count

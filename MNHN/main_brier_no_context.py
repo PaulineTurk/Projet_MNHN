@@ -28,3 +28,9 @@ unit_Brier = predictor.predictor_blosum(path_cond_proba, list_residu)
 print("\npredictor Blosum")
 brier_score = brierScore.brier_score_matrix(path_folder_fasta, path_folder_pid, unit_Brier, list_residu, pid_inf = 62)
 print(brier_score)
+
+
+# Version of Brier Score per amino-acid:
+print("\npredictor Blosum per amino acid")
+brier_score,_,_ = brierScore.brier_score_matrix_v2(path_folder_fasta, path_folder_pid, unit_Brier, list_residu, pid_inf = 62)
+#print(brier_score)
