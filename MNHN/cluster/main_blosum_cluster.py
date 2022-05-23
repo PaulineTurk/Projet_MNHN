@@ -1,7 +1,7 @@
 import sys  
 from pathlib import Path  
 file = Path(__file__). resolve()  
-package_root_directory_MNHN = file.parents [1]  # 0: meme niveau, 1: 1 niveau d'écart etc.
+package_root_directory_MNHN = file.parents [2]
 sys.path.append(str(package_root_directory_MNHN))  
 
 
@@ -10,16 +10,16 @@ import MNHN.utils.folder as folder
 import os
 
 
-path_folder_fasta = "/Users/pauline/Desktop/data_Result/Pfam_split/Pfam_train"   # cheamin des seeds d'entrainement
+path_folder_fasta = sys.arg[1]   # chemin des seeds d'entrainement
 name_folder_fasta =  os.path.basename(path_folder_fasta)
-path_folder_pid = "/Users/pauline/Desktop/data_Test/PID"
+path_folder_pid = sys.arg[2]  # chemin des pid par seeds
 list_residu = ["A", "R", "N", "D", "C", "Q", "E", "G", "H", "I", 
                "L", "K", "M", "F", "P", "S", "T", "W", "Y", "V"]
 
 count_AA, nb_AA, count_coupleAA, nb_coupleAA = blosumfonction.multi_count_for_blosum(path_folder_fasta, path_folder_pid, 
                                                                                      list_residu, pid_inf = 62)
 
-path_non_contextual_result = "/Users/pauline/Desktop/data_Result/Pfam_split/NonContextual_Result"  # chemin à choisir
+path_non_contextual_result = sys.arg[3]  # chemin à choisir
 path_folder_Result = folder.creat_folder(path_non_contextual_result)
 freq_AA, freq_coupleAA = blosumfonction.freq_for_blosum(count_AA, nb_AA, count_coupleAA, nb_coupleAA, path_folder_Result)
 

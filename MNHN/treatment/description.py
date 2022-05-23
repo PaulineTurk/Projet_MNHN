@@ -23,7 +23,7 @@ def data_count(path_data: str, list_residu):
     nbre_seed = 0
     nbre_seq = 0
     total_position = 0
-    total_residu = 0
+    total_residu = 0            # en fait il s'agit des caractères inclus
     total_character = 0
     character_count = {}        # consider all residus (dico constructed along the way)
 
@@ -52,23 +52,23 @@ def data_count(path_data: str, list_residu):
                     residu_count[aa] += 1
                     
 
-    print("nbre_seed:", '{:_.2f}'.format(nbre_seed))
-    print("nbre_seq:", '{:_.2f}'.format(nbre_seq))
-    print("nbre_position:", '{:_.2f}'.format(total_position))
-    print("total_character:", '{:_.2f}'.format(total_character))
-    print("total_residu:", '{:_.2f}'.format(total_residu))
+    print("nbre_seed:               ", '{:_.2f}'.format(nbre_seed))
+    print("nbre_seq:                ", '{:_.2f}'.format(nbre_seq))
+    print("nbre_position:           ", '{:_.2f}'.format(total_position))
+    print("total_character:         ", '{:_.2f}'.format(total_character))
+    print("total_character_included:", '{:_.2f}'.format(total_residu))
 
     # mean len sequence
     if nbre_seq != 0:
         mean_len_seq = round(total_residu/nbre_seq, 2)
-        print("mean_len_seq:", '{:_.2f}'.format(mean_len_seq))
+        print("mean_len_seq:            ", '{:_.2f}'.format(mean_len_seq))
     else: 
         print("no sequence")
 
     # mean nbre sequence per seed
     if nbre_seed != 0:
         mean_nbre_seq = round(nbre_seq/nbre_seed, 2)
-        print("mean_nbre_seq:", '{:_.2f}'.format(mean_nbre_seq))
+        print("mean_nbre_seq:           ", '{:_.2f}'.format(mean_nbre_seq))
     else:
         print('no seed')
 

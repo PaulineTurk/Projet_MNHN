@@ -11,55 +11,10 @@ import MNHN.utils.fastaReader as fastaReader
 from MNHN.utils.timer import Timer
 import MNHN.utils.folder as folder
 
-def pid(seq_1, seq_2):  
-    """
-    Return the percentage of identity between the two raw sequences: seq_1 and seq_2
-    """
-    pid = 0
-    len_seq = len(seq_1)
-    for indice_aa in range(len_seq):
-        if seq_1[indice_aa] == seq_2[indice_aa]:
-            pid += 1
-    return 100*pid/len_seq
-
-
-
-
-def pid_two_seq(path_fasta_file, path_file_pId):
-    liste_seq = fastaReader.read_multi_fasta(path_fasta_file)
-    pid_couple = {}
-    for name_1, seq_1 in liste_seq:
-        pid_couple[name_1] = {}
-        for name_2, seq_2 in liste_seq:
-            pid_couple[name_1][name_2] = pid(seq_1, seq_2)
-    np.save(path_file_pId, pid_couple) 
-
-
-
-
-def save_pid(path_folder_fasta, path_folder_pid):
-    """
-    For each fasta file in path_folder_fasta, compute the dictionary of pid 
-    for each couple of sequences and save it in path_folder_pid
-    """
-    t = Timer()
-    t.start()
-
-    folder.creat_folder(path_folder_pid)
-
-    files = Path(path_folder_fasta).iterdir()
-    for file in files:
-        accession_num = folder.get_accession_number(file)
-        path_file_pid = f"{path_folder_pid}/{accession_num}.pid"
-        pid_two_seq(file, path_file_pid)
-        
-    t.stop("Compute and save the pId files")
-
-
 
 # calcul correct du pid (ne compter que les matchs d'acides aminés standards 
 # et diviser par la longeur min d'acide aminé standard entre les 2 séquences)
-def pid_v2(seq_1, seq_2, list_inclusion):  
+def pid(seq_1, seq_2, list_inclusion):  
     """
     Return the percentage of identity between the two sequences: seq_1 and seq_2
     list_inclusion: liste des caractères inclus
@@ -81,17 +36,17 @@ def pid_v2(seq_1, seq_2, list_inclusion):
     return 100*pid/min(nb_included_character_seq_1, nb_included_character_seq_2)
 
 
-def pid_two_seq_v2(path_fasta_file, path_file_pId, list_inclusion):
+def pid_two_seq(path_fasta_file, path_file_pId, list_inclusion):
     liste_seq = fastaReader.read_multi_fasta(path_fasta_file)
     pid_couple = {}
     for name_1, seq_1 in liste_seq:
         pid_couple[name_1] = {}
         for name_2, seq_2 in liste_seq:
-            pid_couple[name_1][name_2] = pid_v2(seq_1, seq_2, list_inclusion)
+            pid_couple[name_1][name_2] = pid(seq_1, seq_2, list_inclusion)
     np.save(path_file_pId, pid_couple) 
 
 
-def save_pid_v2(path_folder_fasta, path_folder_pid, list_inclusion):
+def save_pid(path_folder_fasta, path_folder_pid, list_inclusion):
     """
     For each fasta file in path_folder_fasta, compute the dictionary of pid 
     for each couple of sequences and save it in path_folder_pid
@@ -105,6 +60,6 @@ def save_pid_v2(path_folder_fasta, path_folder_pid, list_inclusion):
     for file in files:
         accession_num = folder.get_accession_number(file)
         path_file_pid = f"{path_folder_pid}/{accession_num}.pid"
-        pid_two_seq_v2(file, path_file_pid, list_inclusion)
+        pid_two_seq(file, path_file_pid, list_inclusion)
         
     t.stop("Compute and save the pid files")
