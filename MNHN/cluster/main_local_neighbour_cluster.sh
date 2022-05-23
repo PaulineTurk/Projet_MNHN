@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Job name
-#SBATCH --job-name=test_1
+#SBATCH --job-name=local_neighbour
 
 # Number pf nodes
 #SBATCH --nodes=1
@@ -16,7 +16,7 @@
 #SBATCH --partition=type_2
 
 # Name of output file
-#SBATCH --output=cubes_10.out
+#SBATCH --output=local_neighbour.out
 
 # Calculation times
 #SBATCH --time=1-00:00:00
@@ -35,14 +35,14 @@ module load python/3.6.3
 
 ########### script ##########
 date
-echo -e "\nStart calcul cubs\n"
+echo -e "\nStart Pfam treatment\n"
 
-path_folder_pID=(/mnt/beegfs/pturk/PID_couple)
-path_folder_data_split=(/mnt/beegfs/pturk/PfamSplit_50)
-path_new_folder=(/mnt/beegfs/pturk/Cubes_10_Pfam_50_A)
+path_folder_fasta=()                # chemin seed d'apprentissage
+path_folder_pid=()      # chemin des pid de seed
+path_non_contextual_result=() # chemin ou mettre les résultats
 
-cd /trinity/home/pturk
-python ./scriptCubs.py $path_folder_pID $path_folder_data_split $path_new_folder
+cd /trinity/home/pturk/Projet_MNHN/MNHN/
+python ./main_blosum_cluster.py $path_folder_fasta $path_folder_pid $path_non_contextual_result
 date
 
 echo -e "\nDone\n"

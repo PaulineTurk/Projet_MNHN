@@ -8,7 +8,7 @@ sys.path.append(str(package_root_directory_MNHN))
 import MNHN.brier.brierScore as brierScore
 import MNHN.brier.predictor as predictor
 
-path_folder_fasta = "/Users/pauline/Desktop/data_Result/Pfam_split/Pfam_10"
+path_folder_fasta = "/Users/pauline/Desktop/data_Result/Pfam_split/Pfam_train"
 path_folder_pid = "/Users/pauline/Desktop/data_Test/PID"
 list_residu = ["A", "R", "N", "D", "C", "Q", "E", "G", "H", "I", 
                "L", "K", "M", "F", "P", "S", "T", "W", "Y", "V"]

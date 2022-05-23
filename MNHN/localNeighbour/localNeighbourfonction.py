@@ -139,8 +139,6 @@ def sum_plate(cond_proba):
 
 
 # path_NeighborRes  # Create target Directory if don't exist dans le main
-# simpleContextualBlosum change in cube generator !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! pas encore changé !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
 def multi_triplet_count_for_cube(path_folder_fasta, path_folder_pid, delay_num, kp_SeqChoice, list_residu, pid_inf = 62):
     t = Timer()
     t.start()
@@ -166,7 +164,7 @@ def cube(triplet_count, name_folder_fasta, path_NeighborRes, delay_num, kp_SeqCh
     path_proba_cond = f"{path_NeighborRes}/proba_cond_({str(delay_num)},{kp_SeqChoice})_{name_folder_fasta}"
     np.save(path_proba_cond, cond_proba) 
     path_proba_cond = f"{path_proba_cond}.npy"
-    t.stop("Compute the conditional probability matrix with 1 neighbour")
+    t.stop("Compute a cube i.e the conditional probability matrix with 1 neighbour")
 
     return cond_proba, path_proba_cond
 

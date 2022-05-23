@@ -2,7 +2,7 @@ import os
 import shutil
 
 
-def copyFileRenameComplete(path_folder, path_original_py, path_original_sh, list_delay_number):
+def script_cube_generator(path_folder, path_original_py, path_original_sh, list_delay_number):
     """
     path_folder: path to save the generated py and sh scripts
     path_original_py: path of the py script to complete
@@ -24,8 +24,8 @@ def copyFileRenameComplete(path_folder, path_original_py, path_original_sh, list
 
             file = open(py_to_execute, "r")
             list_line = file.readlines()
-            list_line[9] = f"delay_num = {delay_num}\n"
-            list_line[10] = f"kp_SeqChoice = '{kp_SeqChoice}'\n"
+            list_line[10] = f"delay_num = {delay_num}\n"
+            list_line[11] = f"kp_SeqChoice = '{kp_SeqChoice}'\n"
 
             file = open(py_to_execute, "w")
             file.writelines(list_line)
@@ -40,8 +40,8 @@ def copyFileRenameComplete(path_folder, path_original_py, path_original_sh, list
             file = open(path_target, "r")
             list_line = file.readlines()
             list_line[3] = f"#SBATCH --job-name=cube{delay_num}_{kp_SeqChoice}\n"
-            list_line[18] = f"#SBATCH --output=cube{delay_num}_{kp_SeqChoice}_10.out\n"
-            list_line[43] = "cd /trinity/home/pturk/scriptCube\n"
+            list_line[18] = f"#SBATCH --output=cube{delay_num}_{kp_SeqChoice}.out\n"
+            list_line[43] = "cd /trinity/home/pturk/Projet_MNHN/MNHN/cluster/script_cube_auto_generated\n"
             list_line[44] = f"python ./{name_py_file} $path_folder_pID $path_folder_data_split $path_new_folder\n"
 
             file = open(path_target, "w")
@@ -49,14 +49,10 @@ def copyFileRenameComplete(path_folder, path_original_py, path_original_sh, list
             file.close()
 
 
-
-
-
-
 if __name__ == '__main__': 
-    path_folder = '/Users/pauline/Desktop/Structuration/MNHN/blosumNeighbour/scriptCubeGenerator/scriptCube'
-    path_original_py = '/Users/pauline/Desktop/Structuration/MNHN/blosumNeighbour/scriptCubeGenerator/scriptCubeRef.py'
-    path_original_sh = '/Users/pauline/Desktop/Structuration/MNHN/blosumNeighbour/scriptCubeGenerator/scriptCubeRef.sh'
+    path_folder = '/Users/pauline/Desktop/Projet_MNHN/MNHN/cluster/script_cube_auto_generated'  # chemin ou enregistrer les scripts auto-générés
+    path_original_py = '/Users/pauline/Desktop/Projet_MNHN/MNHN/localNeighbour/scriptCubeRef.py' # script .py d'origine
+    path_original_sh = '/Users/pauline/Desktop/Projet_MNHN/MNHN/localNeighbour/scriptCubeRef.sh' # script .sh d'origine
     list_delay_number = [k for k in range(-10, 11) if k!=0]
 
-    copyFileRenameComplete(path_folder, path_original_py, path_original_sh, list_delay_number)
+    script_cube_generator(path_folder, path_original_py, path_original_sh, list_delay_number)
