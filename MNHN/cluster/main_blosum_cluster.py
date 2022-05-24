@@ -10,16 +10,16 @@ import MNHN.utils.folder as folder
 import os
 
 
-path_folder_fasta = sys.arg[1]   # chemin des seeds d'entrainement
+path_folder_fasta = sys.argv[1]   # chemin des seeds d'entrainement
 name_folder_fasta =  os.path.basename(path_folder_fasta)
-path_folder_pid = sys.arg[2]  # chemin des pid par seeds
+path_folder_pid = sys.argv[2]  # chemin des pid par seeds
 list_residu = ["A", "R", "N", "D", "C", "Q", "E", "G", "H", "I", 
                "L", "K", "M", "F", "P", "S", "T", "W", "Y", "V"]
 
 count_AA, nb_AA, count_coupleAA, nb_coupleAA = blosumfonction.multi_count_for_blosum(path_folder_fasta, path_folder_pid, 
                                                                                      list_residu, pid_inf = 62)
 
-path_non_contextual_result = sys.arg[3]  # chemin à choisir
+path_non_contextual_result = sys.argv[3]  # chemin à choisir
 path_folder_Result = folder.creat_folder(path_non_contextual_result)
 freq_AA, freq_coupleAA = blosumfonction.freq_for_blosum(count_AA, nb_AA, count_coupleAA, nb_coupleAA, path_folder_Result)
 

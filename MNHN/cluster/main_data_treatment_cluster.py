@@ -18,13 +18,13 @@ import MNHN.treatment.redundancy as redundancy
 list_standard_aa = ["A", "R", "N", "D", "C", "Q", "E", "G", "H", "I", 
                     "L", "K", "M", "F", "P", "S", "T", "W", "Y", "V"]
 
-path_file = sys.arg[1] # fichier Stockholm téléchargé depuis Pfam
+path_file = sys.argv[1] # fichier Stockholm téléchargé depuis Pfam
 
-path_folder_save = sys.arg[2] # chemin à choisir
+path_folder_save = sys.argv[2] # chemin à choisir
 stockholm.stockholm_separator(path_file, path_folder_save)
 path_folder_stockholm = path_folder_save
 
-path_folder_fasta = sys.arg[3]  # chemin à choisir
+path_folder_fasta = sys.argv[3]  # chemin à choisir
 stockholm.multi_stockholm_to_fasta(path_folder_stockholm, path_folder_fasta)
 path_data = path_folder_fasta
 print(f"\nVisualisation of {path_data}")
@@ -35,7 +35,7 @@ description.bar_plot_data_count(path_data, character_count, total_character , "C
 
 
 # Capitalisation des caractères de Pfam
-path_data_corrected = sys.arg[4]  # chemin à choisir
+path_data_corrected = sys.argv[4]  # chemin à choisir
 capitalizer.multi_capitalization(path_data, path_data_corrected)
 path_data = path_data_corrected
 print(f"\nVisualisation of {path_data}")
@@ -47,21 +47,21 @@ description.bar_plot_data_count(path_data, character_count, total_character , "C
 
 # Calcul des PID
 path_folder_fasta = path_data_corrected # upper correction only
-path_folder_pid = sys.arg[5]    # chemin à choisir
+path_folder_pid = sys.argv[5]    # chemin à choisir
 list_inclusion = list_standard_aa
 pid.save_pid(path_folder_fasta, path_folder_pid, list_inclusion)
 
 
 # Clustering
 path_folder_fasta = path_data_corrected # still upper correction only
-path_folder_fasta_nonRedondant = sys.arg[6]   # chemin à choisir
+path_folder_fasta_nonRedondant = sys.argv[6]   # chemin à choisir
 list_residu = list_standard_aa
 redundancy.multi_non_redundancy_correction(path_folder_fasta, path_folder_fasta_nonRedondant, list_residu, pid_sup = 99)
 
 
 # Split des seeds en seed train et seed test (50%/50% de Pfam) 
 path_folder_data = path_folder_fasta_nonRedondant      # redondant corrected
-result_folder = sys.arg[7]    # chemin à choisir
+result_folder = sys.argv[7]    # chemin à choisir
 folder.creat_folder(result_folder)
 path_folder_data_split = f"{result_folder}/Pfam_split" 
 percentage_A = 50

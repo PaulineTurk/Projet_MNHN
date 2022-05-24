@@ -3,103 +3,22 @@ import numpy as np
 import os
 import pandas as pd
 import random
-
+import math
 from sklearn.utils import compute_sample_weight
 
 
 import sys  
 from pathlib import Path  
 file = Path(__file__). resolve()  
-package_root_directory_MNHN = file.parents [2]  # 0: meme niveau, 1: 1 niveau d'écart etc.
+package_root_directory_MNHN = file.parents [2]
 sys.path.append(str(package_root_directory_MNHN))
 
-from MNHN.utils.fastaReader import readFastaMul
-from MNHN.utils.folder import creatFolder, getAccessionNb
+import MNHN.utils.fastaReader as fastaReader 
+import MNHN.utils.folder as folder
 from MNHN.utils.timer import Timer
-import math
 
 
-
-def multiSeedSelection(path_folder_seed, path_folder_pid, pid_inf, list_residu, path_folder_dico_seq, path_file_dico_seed):
-    """
-    path_folder_dico_seq: dossier créé s'il n'existe pas, effacé puis recréé sinon.
-                          Les dictionnaires de seed y sont enregistrés.
-    path_file_dico_seed: dossier créé s'il n'existe pas, effacé puis recréé sinon.
-                         Le dictionnaire sur les seeds y est enregistré 
-                         ainsi que sa version normalisée par la somme de tous les comptes.
-    """
-    t = Timer()
-    t.start()
-
-
-
-    # initialisation des "compteurs" cumulés sur tous les seeds
-    dico_seed = {}   # len(dico_seed) = nb_seed_valid
-    nb_non_info_seed = 0  # pour vérifier ce compte + len(dico_seed) = len(path_folder_seed)
-    nb_valid_aa_couple_global = 0
-
-
-    # creation of path_folder_dico_seq
-    path_folder_dico_seq = creatFolder(path_folder_dico_seq)
-
-    # creation of path_folder_dico_seed
-    path_file_dico_seed = creatFolder(path_file_dico_seed)
-
-    files = Path(path_folder_seed).iterdir()
-    for file in files:
-        accession_num =  getAccessionNb(file)
-        pid = np.load(f"{path_folder_pid}/{accession_num}.pId.npy", allow_pickle='TRUE').item()
-        seed = readFastaMul(file)
-
-        dico_seed, nb_non_info_seed, nb_valid_aa_couple_global, dico_seq = oneSeedSelection(accession_num, seed, pid, pid_inf, nb_non_info_seed, 
-                                                                                            dico_seed, nb_valid_aa_couple_global, list_residu)
-        
-        #print(f"\n{accession_num}")
-        #print(np.transpose(pd.DataFrame.from_dict(dico_seq)))
-
-
-        # sauvegarde des dico_seq
-        path_file_dico_seq = f"{path_folder_dico_seq}/{accession_num}.seq"
-        np.save(path_file_dico_seq, dico_seq) 
-
-    # sauvegarde du dico_seed
-    path_save_file_dico_seed = f"{path_file_dico_seed}/seed"
-    np.save(path_save_file_dico_seed, dico_seed) 
-
-    # normalisation de dico_seed
-    dico_seed_normalised = {}
-    for key in dico_seed:
-        dico_seed_normalised[key] = {}
-        dico_seed_normalised[key]["proportion valid aa couple (seed)"] = dico_seed[key]["nb valid aa couple (seed)"]/nb_valid_aa_couple_global
-        dico_seed_normalised[key]["len alignment"] = dico_seed[key]["len alignment"] 
-    
-    #print("dico_seed_normalised")
-    #print(np.transpose(pd.DataFrame.from_dict(dico_seed_normalised)))
-        
-
-    # sauvegarde du dico_seed_normalised
-    path_save_file_dico_seed_normalised = f"{path_file_dico_seed}/seed_normalised"
-    np.save(path_save_file_dico_seed_normalised, dico_seed_normalised) 
-
-    print(f"\nnb de seed valides, invalides: {len(dico_seed)}, {nb_non_info_seed}")
-
-    t.stop("Traitement de la fraction Pfam entrainement")
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-# fonctions spécialisées appelées
-def oneSeedSelection(accession_num, seed, pid, pid_inf, nb_non_info_seed, 
+def one_seed_selection(accession_num, seed, pid, pid_inf, nb_non_info_seed, 
                      dico_seed, nb_valid_aa_couple_global, list_residu):
     """
     accession_num: pour retrouver le seed dans le dico
@@ -152,33 +71,68 @@ def oneSeedSelection(accession_num, seed, pid, pid_inf, nb_non_info_seed,
     return dico_seed, nb_non_info_seed, nb_valid_aa_couple_global, dico_seq
 
 
+def multi_seeds_selection(path_folder_seed, path_folder_pid, pid_inf, list_residu, path_folder_dico_seq, path_file_dico_seed):
+    """
+    path_folder_dico_seq: dossier créé s'il n'existe pas, effacé puis recréé sinon.
+                          Les dictionnaires de seed y sont enregistrés.
+    path_file_dico_seed: dossier créé s'il n'existe pas, effacé puis recréé sinon.
+                         Le dictionnaire sur les seeds y est enregistré 
+                         ainsi que sa version normalisée par la somme de tous les comptes.
+    """
+    t = Timer()
+    t.start()
 
+    # initialisation des "compteurs" cumulés sur tous les seeds
+    dico_seed = {}   # len(dico_seed) = nb_seed_valid
+    nb_non_info_seed = 0  # pour vérifier ce compte + len(dico_seed) = len(path_folder_seed)
+    nb_valid_aa_couple_global = 0
 
+    # creation of path_folder_dico_seq
+    path_folder_dico_seq = folder.creat_folder(path_folder_dico_seq)
 
+    # creation of path_folder_dico_seed
+    path_file_dico_seed = folder.creat_folder(path_file_dico_seed)
 
+    files = Path(path_folder_seed).iterdir()
+    for file in files:
+        accession_num =  folder.get_accession_number(file)
+        pid = np.load(f"{path_folder_pid}/{accession_num}.pId.npy", allow_pickle='TRUE').item()
+        seed = fastaReader.read_multi_fasta(file)
 
+        dico_seed, nb_non_info_seed, nb_valid_aa_couple_global, dico_seq = one_seed_selection(accession_num, seed, pid, pid_inf, nb_non_info_seed, 
+                                                                                            dico_seed, nb_valid_aa_couple_global, list_residu)
+        
+        #print(f"\n{accession_num}")
+        #print(np.transpose(pd.DataFrame.from_dict(dico_seq)))
 
+        # sauvegarde des dico_seq
+        path_file_dico_seq = f"{path_folder_dico_seq}/{accession_num}.seq"
+        np.save(path_file_dico_seq, dico_seq) 
 
+    # sauvegarde du dico_seed
+    path_save_file_dico_seed = f"{path_file_dico_seed}/seed"
+    np.save(path_save_file_dico_seed, dico_seed) 
 
+    # normalisation de dico_seed
+    dico_seed_normalised = {}
+    for key in dico_seed:
+        dico_seed_normalised[key] = {}
+        dico_seed_normalised[key]["proportion valid aa couple (seed)"] = dico_seed[key]["nb valid aa couple (seed)"]/nb_valid_aa_couple_global
+        dico_seed_normalised[key]["len alignment"] = dico_seed[key]["len alignment"] 
+    
+    #print("dico_seed_normalised")
+    #print(np.transpose(pd.DataFrame.from_dict(dico_seed_normalised)))
+        
+    # sauvegarde du dico_seed_normalised
+    path_save_file_dico_seed_normalised = f"{path_file_dico_seed}/seed_normalised"
+    np.save(path_save_file_dico_seed_normalised, dico_seed_normalised) 
 
+    print(f"\nnb de seed valides, invalides: {len(dico_seed)}, {nb_non_info_seed}")
 
+    t.stop("Traitement de la fraction Pfam entrainement")
+    
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-def attributionNbExSeed(path_dico_seed_normalised, nb_exemple_test, path_dico_exemple):
+def example_number_per_seed(path_dico_seed_normalised, nb_exemple_test, path_dico_exemple):
     """
     déterminer pseudo-aléatoirement le nombre d'exemple valide à piocher de chaque seed. 
 
@@ -210,10 +164,8 @@ def attributionNbExSeed(path_dico_seed_normalised, nb_exemple_test, path_dico_ex
 
     print(np.transpose(pd.DataFrame.from_dict(dico_exemple)))
 
-    
 
-
-def getBoundPosition(len_seq, context_kl, context_kr, context_pl, context_pr):  # à bien couvrir toutes les situations car il y a aussi des courts peptides
+def get_bound_position(len_seq, context_kl, context_kr, context_pl, context_pr):  # à bien couvrir toutes les situations car il y a aussi des courts peptides
                                                                                   # et on envisage d'aller voir au moins jusqu'à 10 voisins
     """
     Bound of position that are valid according to the contextual window defined
@@ -232,73 +184,7 @@ def getBoundPosition(len_seq, context_kl, context_kr, context_pl, context_pr):  
     return valid_interval_ensemble
 
 
-
-
-
-
-
-
-
-
-
-
-
-def randomMultiSeqExempleSelection(path_folder_seed, path_dico_exemple_complet, path_dico_seq, 
-                                   context_kl, context_kr, context_pl, context_pr):
-    """
-    path_folder_seed: à relire tous les seed max une fois (à voir comment articuler)
-    path_dico_exemple_complet: loader une fois le dico de l'info sur les seed et nb d'exemples à prendre de chacun
-    path_dico_seq: path du folder contenant les dico_seq de chaque seed
-
-    context_kl: considérer les acides aminés à gauche de l'acide aminé connu jusqu'à context_lk positions à gauche (kl = known left)
-    context_kr: considérer les acides aminés à gauche de l'acide aminé connu jusqu'à context_rk positions à droite (kr = known right)
-
-    context_pl: considérer les acides aminés à gauche de l'acide aminé à prédire jusqu'à context_lp positions à gauche (pl = to predict left)
-    context_pr: considérer les acides aminés à gauche de l'acide aminé à prédire jusqu'à context_rp positions à droite (pr = to predict right)
-    """
-    t = Timer()
-    t.start()
-    
-    # initialisation de la liste d'exemples
-    list_example = []
-
-    # load de dico_exemple une seule fois
-    dico_exemple = np.load(path_dico_exemple_complet, allow_pickle='TRUE').item()
-
-    # "load" des files fasta de seeds
-    files = Path(path_folder_seed).iterdir()
-
-    for file in files:
-        accession_num =  getAccessionNb(file)
-        if accession_num in dico_exemple: 
-            nb_ex_test = dico_exemple[accession_num]["nb exemples tests"]
-            if nb_ex_test != 0:
-                # fixer l'intervalle d'indices compatibles selon len_align du seed et la fenetre définie
-                len_align = dico_exemple[accession_num]["len alignment"]
-                valid_interval_ensemble = getBoundPosition(len_align, context_kl, context_kr, context_pl, context_pr)
-
-                if valid_interval_ensemble != []: 
-                    # en loader le dico_seq associé grace à l'accession_num
-                    dico_seq = np.load(f"{path_dico_seq}/{accession_num}.seq.npy", allow_pickle='TRUE').item()
-                    # je crois qu'il y a tjs des cas ultra atypiques qui peuvent encore se produire ... 
-
-                    # selection des nb_ex_test exemples dans le seed
-                    example_selected_count = 0
-                    while example_selected_count < nb_ex_test:
-                        list_example, example_selected_count = randomOneSeqExempleSelection(list_example, dico_seq, valid_interval_ensemble,
-                                                     context_kl, context_kr, context_pl, context_pr, example_selected_count)  
-                    print("example_selected_count :",example_selected_count)
-
-    t.stop("Selection des exemples tests")
-    return list_example
-                       
-                    
-                
-
-
-
-
-def randomOneSeqExempleSelection(list_example, dico_seq, valid_interval, context_kl, context_kr, context_pl, context_pr, example_selected_count):  
+def random_example_selection(list_example, dico_seq, valid_interval, context_kl, context_kr, context_pl, context_pr, example_selected_count):  
     """
     A ce stade on suppose qu on a selectionné un seed pour y piocher ce qu'on veut et on met cette fonction
     dans une boucle autant de fois qu'on doit prendre d'exemple de ce seed.
@@ -349,48 +235,89 @@ def randomOneSeqExempleSelection(list_example, dico_seq, valid_interval, context
 
     return list_example, example_selected_count
 
-        
+
+def multi_random_example_selection(path_folder_seed, path_dico_exemple_complet, path_dico_seq, 
+                                   context_kl, context_kr, context_pl, context_pr):
+    """
+    path_folder_seed: à relire tous les seed max une fois (à voir comment articuler)
+    path_dico_exemple_complet: loader une fois le dico de l'info sur les seed et nb d'exemples à prendre de chacun
+    path_dico_seq: path du folder contenant les dico_seq de chaque seed
+
+    context_kl: considérer les acides aminés à gauche de l'acide aminé connu jusqu'à context_lk positions à gauche (kl = known left)
+    context_kr: considérer les acides aminés à gauche de l'acide aminé connu jusqu'à context_rk positions à droite (kr = known right)
+
+    context_pl: considérer les acides aminés à gauche de l'acide aminé à prédire jusqu'à context_lp positions à gauche (pl = to predict left)
+    context_pr: considérer les acides aminés à gauche de l'acide aminé à prédire jusqu'à context_rp positions à droite (pr = to predict right)
+    """
+    t = Timer()
+    t.start()
     
+    # initialisation de la liste d'exemples
+    list_example = []
 
+    # load de dico_exemple une seule fois
+    dico_exemple = np.load(path_dico_exemple_complet, allow_pickle='TRUE').item()
 
+    # "load" des files fasta de seeds
+    files = Path(path_folder_seed).iterdir()
 
+    for file in files:
+        accession_num =  folder.get_accession_number(file)
+        if accession_num in dico_exemple: 
+            nb_ex_test = dico_exemple[accession_num]["nb exemples tests"]
+            if nb_ex_test != 0:
+                # fixer l'intervalle d'indices compatibles selon len_align du seed et la fenetre définie
+                len_align = dico_exemple[accession_num]["len alignment"]
+                valid_interval_ensemble = get_bound_position(len_align, context_kl, context_kr, context_pl, context_pr)
 
+                if valid_interval_ensemble != []: 
+                    # en loader le dico_seq associé grace à l'accession_num
+                    dico_seq = np.load(f"{path_dico_seq}/{accession_num}.seq.npy", allow_pickle='TRUE').item()
+                    # je crois qu'il y a tjs des cas ultra atypiques qui peuvent encore se produire ... 
 
+                    # selection des nb_ex_test exemples dans le seed
+                    example_selected_count = 0
+                    while example_selected_count < nb_ex_test:
+                        list_example, example_selected_count = random_example_selection(list_example, dico_seq, valid_interval_ensemble,
+                                                     context_kl, context_kr, context_pl, context_pr, example_selected_count)  
+                    print("example_selected_count :",example_selected_count)
 
-
-
-
+    t.stop("Selection des exemples tests")
+    return list_example
+                       
+                    
 
 
 
 if __name__ == '__main__':
 
-    path_folder_seed = "/Users/pauline/Desktop/coupleSeqTest"
-    path_folder_pid = "/Users/pauline/Desktop/Overfitting_test/PID_couple"
+    path_folder_seed = "/Users/pauline/Desktop/coupleSeqTest"                # chemin vers les seeds tests
+    path_folder_pid = "/Users/pauline/Desktop/Overfitting_test/PID_couple"   # chemin vers les pid de seeds
     pid_inf = 62
     list_residu = ["A", "R", "N", "D", "C", "Q", "E", "G", "H", "I", 
                    "L", "K", "M", "F", "P", "S", "T", "W", "Y", "V"]
-            
-    path_folder_dico_seq = "/Users/pauline/Desktop/data_Result/selection_test_brier_voisin/seq"
-    path_file_dico_seed = "/Users/pauline/Desktop/data_Result/selection_test_brier_voisin/seed"
+    
+    # /Users/pauline/Desktop/data_Result/selection_test_brier_voisin  # dossier à crééer avant de faire n'importe quel test
+    path_folder_dico_seq = "/Users/pauline/Desktop/data_Result/selection_test_brier_voisin/seq" # chemin ou on veut enregistrer les dico_seq
+    path_file_dico_seed = "/Users/pauline/Desktop/data_Result/selection_test_brier_voisin/seed" # chemin ou on veut enregistrer les dico_seed
 
     # # calcul du dico_seed et des dico_seq (1 par seed informatif) A CALCULER QU UNE SEULE FOIS POUR TOUS LES TESTS FUTUR, SUR LA FRACTION
     # DE PFAM D'INTERET
-    #multiSeedSelection(path_folder_seed, path_folder_pid, pid_inf, list_residu, path_folder_dico_seq, path_file_dico_seed)
+    multi_seeds_selection(path_folder_seed, path_folder_pid, pid_inf, list_residu, path_folder_dico_seq, path_file_dico_seed)
 
 
 
     # A CALCULER UNE SEULE FOIS PAR CONTEXTE SOUHAITÉ
     path_dico_seed_normalised = "/Users/pauline/Desktop/data_Result/selection_test_brier_voisin/seed/seed_normalised.npy"
     nb_exemple_test = 10
-    path_dico_exemple = "/Users/pauline/Desktop/data_Result/selection_test_brier_voisin/seed/"
-    attributionNbExSeed(path_dico_seed_normalised, nb_exemple_test, path_dico_exemple)
+    path_dico_exemple = "/Users/pauline/Desktop/data_Result/selection_test_brier_voisin/seed"
+    example_number_per_seed(path_dico_seed_normalised, nb_exemple_test, path_dico_exemple)
 
     path_dico_seq = "/Users/pauline/Desktop/data_Result/selection_test_brier_voisin/seq"
     path_dico_exemple_complet = "/Users/pauline/Desktop/data_Result/selection_test_brier_voisin/seed/exemple_seed.npy"
     context_kl, context_kr, context_pl, context_pr = 2, 3, 1, 5
 
-    list_example = randomMultiSeqExempleSelection(path_folder_seed, path_dico_exemple_complet, path_dico_seq, 
+    list_example = multi_random_example_selection(path_folder_seed, path_dico_exemple_complet, path_dico_seq, 
                                    context_kl, context_kr, context_pl, context_pr)
-    #print(list_example)
+    print(list_example)
 
