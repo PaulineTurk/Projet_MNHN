@@ -123,7 +123,7 @@ def naive_bayes_brier(list_example, context_kl, context_kr, context_pl, context_
     nb_example = len(list_example)
     if nb_example != 0:
         score_brier_naive_bayes /= nb_example
-    print("nombre d'exemples tirés:", )
+    print("nombre d'exemples tirés:", nb_example)
     print("score_brier_naive_bayes   :", score_brier_naive_bayes)
     t.stop("Calcul score de Brier avec Naive Bayes")
 
