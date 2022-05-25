@@ -1,5 +1,6 @@
 import numpy as np
-from sklearn.preprocessing import normalize
+import matplotlib.pyplot as plt
+import os
 
 import sys  
 from pathlib import Path  
@@ -122,8 +123,11 @@ def naive_bayes_brier(list_example, context_kl, context_kr, context_pl, context_
     nb_example = len(list_example)
     if nb_example != 0:
         score_brier_naive_bayes /= nb_example
-    print(score_brier_naive_bayes)
+    print("nombre d'exemples tirés:", )
+    print("score_brier_naive_bayes   :", score_brier_naive_bayes)
     t.stop("Calcul score de Brier avec Naive Bayes")
+
+    return score_brier_naive_bayes
 
   
 
@@ -147,29 +151,41 @@ if __name__ == '__main__':
 
 
     # A CALCULER UNE SEULE FOIS PAR CONTEXTE SOUHAITÉ
+    #list_context = [(1, 0, 0, 0), (2, 0, 0, 0)]  # à définir en fonction des cubes disponibles
+    list_context = [(1, 0, 0, 0)]  # à définir en fonction des cubes disponibles
+    list_nb_example = [i for i in np.arange(10_000, 100_000, 1000)]
+
     path_dico_seed_normalised = "/Users/pauline/Desktop/data_Result/selection_test_brier_voisin/seed/seed_normalised.npy"
-    nb_exemple_test = 1000
     path_dico_exemple = "/Users/pauline/Desktop/data_Result/selection_test_brier_voisin/seed"
-    selection_example.example_number_per_seed(path_dico_seed_normalised, nb_exemple_test, path_dico_exemple)
 
     path_dico_seq = "/Users/pauline/Desktop/data_Result/selection_test_brier_voisin/seq"
     path_dico_exemple_complet = "/Users/pauline/Desktop/data_Result/selection_test_brier_voisin/seed/exemple_seed.npy"
-    #context_kl, context_kr, context_pl, context_pr = 2, 3, 1, 5
-    context_kl, context_kr, context_pl, context_pr = 1, 1, 1, 1
 
-    list_example = selection_example.multi_random_example_selection(path_folder_seed, path_dico_exemple_complet, path_dico_seq, 
-                                   context_kl, context_kr, context_pl, context_pr)
-    print(list_example)
-
-
-
-
-    max_relative_distance = 1
-    #k_or_p = "k" 
-    k_or_p = "p" 
-    l_or_r = "l" 
-    #l_or_r = "r" 
     path_cube_folder = "/Users/pauline/Desktop/cube_test"
     path_blosum_proba = "/Users/pauline/Desktop/Overfitting_test/test_1/BlosumRes/BlosumRes_50_A/Blosum_proba_cond.npy"
     list_inclusion = list_residu
-    naive_bayes_brier(list_example, context_kl, context_kr, context_pl, context_pr, path_cube_folder, path_blosum_proba, list_inclusion)
+
+    path_image = "/Users/pauline/Desktop/data_Result"  # ou sauvegarder les graphes en sortie
+
+    for context in list_context:
+        context_kl, context_kr, context_pl, context_pr = context
+
+        list_score_brier_bayes_naif = []
+
+        for nb_exemple_test in list_nb_example:
+            selection_example.example_number_per_seed(path_dico_seed_normalised, nb_exemple_test, path_dico_exemple)
+            list_example = selection_example.multi_random_example_selection(path_folder_seed, path_dico_exemple_complet, path_dico_seq, 
+                                    context_kl, context_kr, context_pl, context_pr)
+            #print(list_example) 
+            print("context :", context)
+            print("nombre d'exemples demandés:", nb_exemple_test )
+            score_brier_naive_bayes = naive_bayes_brier(list_example, context_kl, context_kr, context_pl, context_pr, path_cube_folder, path_blosum_proba, list_inclusion)
+            list_score_brier_bayes_naif.append(score_brier_naive_bayes)
+        print(list_score_brier_bayes_naif)
+        plt.scatter(list_nb_example, list_score_brier_bayes_naif, label = f"{context_kl}, {context_kr}, {context_pl}, {context_pr}", alpha = 0.75, s = 5)
+        plt.xlabel("Nombre d'exemples test")
+        plt.ylabel('Brier Score')
+        title = f"Score de Brier avec naive Bayes calculé sur {os.path.basename(path_folder_seed)}"
+        plt.title(title)
+        plt.legend()
+        plt.savefig(f"{path_image}/{title}.png")
